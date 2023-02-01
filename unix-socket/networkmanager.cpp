@@ -15,29 +15,26 @@ void bahiart::NetworkManager::TcpSocket::setupAddress(const std::string HOST_NAM
         {
             // tests may be needed for port length ---> gai_strerror() exceptions not clear
             throw bahiart::NetworkManager::SocketException(gai_strerror(getAddrStatus));
-            return;
         }
 
         /* File Descriptor/Socket Descriptor created based on the serverInfo - socket() */
         if ((this->socketFileDescriptor = socket(serverInfo->ai_family, serverInfo->ai_socktype, serverInfo->ai_protocol)) < 0)
         {
-            // maybe try to implement exception with strerror(errno), error string may be useful
-            throw bahiart::NetworkManager::SocketException("Couldn't create file descriptor - socket()");
-            return;
+            throw bahiart::NetworkManager::SocketException("Couldn't create file descriptor - socket()", errno);
         }
 
         return;
     }
 
-    catch (bahiart::NetworkManager::SocketException exception)
+    catch (bahiart::NetworkManager::SocketException& exception)
     {
-        std::cout << "SocketException - Error during socket creation or address setup ---> " << exception.what() << std::endl;
+        std::cerr << "SocketException - Error during socket creation or address setup ---> " << exception.what() << std::endl;
         return;
     }
 
-    catch (std::exception exception)
+    catch (std::exception& exception)
     {
-        std::cout << "std::exception - Default exception at setupAddress()" << std::endl;
+        std::cerr << "std::exception - Default exception at setupAddress()" << exception.what() << std::endl;
         return;
     }
 }
@@ -49,22 +46,20 @@ void bahiart::NetworkManager::TcpSocket::openConnection()
         /* Connects to remote host - connect() */
         if (connect(socketFileDescriptor, serverInfo->ai_addr, serverInfo->ai_addrlen) < 0)
         {
-            // maybe try to implement exception with strerror(errno), error string may be useful
-            throw bahiart::NetworkManager::SocketException("Couldn't connect to remote host - connect()");
-            return;
+            throw bahiart::NetworkManager::SocketException("Couldn't connect to remote host - connect()", errno);
         }
         return;
     }
 
-    catch (bahiart::NetworkManager::SocketException exception)
+    catch (bahiart::NetworkManager::SocketException& exception)
     {
-        std::cout << "SocketException - Error during socket connection ---> " << exception.what() << std::endl;
+        std::cerr << "SocketException - Error during socket connection ---> " << exception.what() << std::endl;
         return;
     }
 
-    catch (std::exception exception)
+    catch (std::exception& exception)
     {
-        std::cout << "std::exception - Default exception at openConnection()" << std::endl;
+        std::cerr << "std::exception - Default exception at openConnection() --->" << exception.what() << std::endl;
         return;
     }
 
@@ -77,21 +72,19 @@ void bahiart::NetworkManager::TcpSocket::sendMessage(std::string message)
     {
         if (send(this->socketFileDescriptor, message.c_str(), strlen(message.c_str()), 0) < 0)
         {
-            // maybe try to implement exception with strerror(errno), error string may be useful
-            throw SocketException("Couldn't send the message to the server - send()");
-            return;
+            throw SocketException("Couldn't send the message to the server - send()", errno);
         }
     }
 
-    catch (bahiart::NetworkManager::SocketException exception)
+    catch (bahiart::NetworkManager::SocketException& exception)
     {
-        std::cout << "SocketException - Error during socket messaging ---> " << exception.what() << std::endl;
+        std::cerr << "SocketException - Error during socket messaging ---> " << exception.what() << std::endl;
         return;
     }
 
-    catch (std::exception exception)
+    catch (std::exception& exception)
     {
-        std::cout << "std::exception - Default exception at sendMessage()" << std::endl;
+        std::cerr << "std::exception - Default exception at sendMessage()" << exception.what() << std::endl;
         return;
     }
 
@@ -119,29 +112,26 @@ void bahiart::NetworkManager::UdpSocket::setupAddress(const std::string HOST_NAM
         {
             // tests may be needed for port length ---> gai_strerror() exceptions not clear
             throw bahiart::NetworkManager::SocketException(gai_strerror(getAddrStatus));
-            return;
         }
 
         /* File Descriptor/Socket Descriptor created based on the serverInfo - socket() */
         if ((this->socketFileDescriptor = socket(serverInfo->ai_family, serverInfo->ai_socktype, serverInfo->ai_protocol)) < 0)
         {
-            // maybe try to implement exception with strerror(errno), error string may be useful
-            throw bahiart::NetworkManager::SocketException("Couldn't create file descriptor - socket()");
-            return;
+            throw bahiart::NetworkManager::SocketException("Couldn't create file descriptor - socket()", errno);
         }
 
         return;
     }
 
-    catch (bahiart::NetworkManager::SocketException exception)
+    catch (bahiart::NetworkManager::SocketException& exception)
     {
-        std::cout << "SocketException - Error during socket creation or address setup ---> " << exception.what() << std::endl;
+        std::cerr << "SocketException - Error during socket creation or address setup ---> " << exception.what() << std::endl;
         return;
     }
 
-    catch (std::exception exception)
+    catch (const std::exception& exception)
     {
-        std::cout << "std::exception - Default exception at setupAddress()" << std::endl;
+        std::cerr << "std::exception - Default exception at setupAddress() ---> " << exception.what() << std::endl;
         return;
     }
 }
@@ -152,21 +142,19 @@ void bahiart::NetworkManager::UdpSocket::sendMessage(std::string message){
     {
         if (sendto(socketFileDescriptor, message.c_str(), strlen(message.c_str()), 0, serverInfo->ai_addr, serverInfo->ai_addrlen) < 0)
         {
-            // maybe try to implement exception with strerror(errno), error string may be useful
-            throw SocketException("Couldn't send the message to the server - sendto()");
-            return;
+            throw SocketException("Couldn't send the message to the server - sendto()", errno);
         }
     }
 
-    catch (bahiart::NetworkManager::SocketException exception)
+    catch (const bahiart::NetworkManager::SocketException& exception)
     {
-        std::cout << "SocketException - Error during socket messaging ---> " << exception.what() << std::endl;
+        std::cerr << "SocketException - Error during socket messaging ---> " << exception.what() << std::endl;
         return;
     }
 
-    catch (std::exception exception)
+    catch (const std::exception& e)
     {
-        std::cout << "std::exception - Default exception at sendMessage()" << std::endl;
+        std::cerr << "std::exception - Default exception at sendMessage() ---> " << e.what() << std::endl;
         return;
     }
 

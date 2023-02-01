@@ -15,7 +15,7 @@ int main(int argc, char *argv[])
 
         socket->sendMessage(message);
     }
-    catch (std::exception exception)
+    catch (const std::exception& exception)
     {
         std::cout << "std::exception - Default exception at main()" << std::endl;
         return 0;

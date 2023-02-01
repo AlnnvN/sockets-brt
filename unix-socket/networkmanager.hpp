@@ -3,6 +3,7 @@
 
 #include <string.h>
 #include <iostream>
+#include <memory>
 
 /*UNIX dependencies*/
 #include <unistd.h>
@@ -20,13 +21,26 @@ namespace bahiart
         {
         private:
             const char *description{};
+            int errNum{};
 
         public:
             SocketException(const char *description) : description(description) {}
 
-            const char *what()
+            /* Receives error description and the just set global variable 'errno' by the failed function */
+            SocketException(const char *description, int errNum) : description(description), errNum(errNum) {}
+
+            const char *what() const throw()
             {
-                return description;
+                if(errNum != (int){} && errNum != 22){
+                    auto result = std::make_shared<char *>(new char[strlen(description) + strlen(strerror(this->errNum))+1]);
+                    strcpy(*result, description);
+                    strcat(*result, " -> ");
+                    strcat(*result,strerror(this->errNum));
+                    return *result;
+                }
+                else{
+                    return description;
+                }
             }
         };
 
@@ -38,7 +52,7 @@ namespace bahiart
             struct addrinfo *serverInfo{};
 
         public:
-            virtual void setupAddress(std::string HOST_NAME, std::string PORT) = 0;
+            virtual void setupAddress(const std::string HOST_NAME, const std::string PORT) = 0;
 
             virtual void openConnection() = 0;
 
@@ -53,7 +67,7 @@ namespace bahiart
         {
         public:
             /* Sets socket object's addrinfo -> getaddrinfo() and the file descriptor -> socket() */
-            void setupAddress(std::string HOST_NAME, std::string PORT) override;
+            void setupAddress(const std::string HOST_NAME, const std::string PORT) override;
 
             /* Establishes TCP connection to the server -> connect() */
             void openConnection() override;
@@ -70,9 +84,8 @@ namespace bahiart
         class UdpSocket : public bahiart::NetworkManager::Socket
         {
         public:
-            /* Sets socket object's addrinfo -> getaddrinfo(), file descriptor -> socket(),
-            and connects to the server -> connect() */
-            void setupAddress(std::string HOST_NAME, std::string PORT) override;
+            /* Sets socket object's addrinfo -> getaddrinfo() and file descriptor -> socket()*/
+            void setupAddress(const std::string HOST_NAME, const std::string PORT) override;
 
             /* Sends message directly using UDP protocol to the stored socket descriptor -> sendto() */
             void sendMessage(std::string message) override;
