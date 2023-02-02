@@ -70,18 +70,31 @@ void bahiart::NetworkManager::TcpSocket::sendMessage(std::string message)
 {
     try
     {
-        char buffer[256];
+        /* Defines the size of the message buffer as the length of the message per se, 
+        plus 4 bytes for the initial unsigned int representing message length */
+        const unsigned int bufferLength = message.length() + 4;
+        
+        /* Encodes the length of the message, from a host unsigned int, to a network one */
+        const unsigned int encodedMsgLength = htonl(message.length());
 
-        memset(buffer,0,256);
-        unsigned long size = message.length();
-        unsigned long net_size = htonl(size);
-        memcpy(buffer,&net_size,4);
-        strcpy(buffer+4,message.c_str());
+        /* Initializes vector for the message buffer as char type (1 byte per element), and
+        resizes it to it's expected length */
+        std::vector<char> buffer{};
+        buffer.resize(bufferLength);
 
-        if (send(this->socketFileDescriptor, buffer, size+4, 0) < 0)
-        {
+        /* Ensures that all of message buffer's memory is set to 0 */
+        memset(buffer.data(), 0, bufferLength);
+
+        /* Sets first 4 bytes of the buffer to store the encoded message length unsigned int */
+        memcpy(buffer.data(), &encodedMsgLength, 4);
+
+        /* Sets the rest of the buffer to store the message received as a parameter, fifth index onwards */
+        strcpy(buffer.data() + 4, message.c_str());
+
+        /* Tries to send the message buffer from the just established connection, otherwise, throws an error */
+        if (send(this->socketFileDescriptor, buffer.data(), bufferLength, 0) < 0)
             throw SocketException("Couldn't send the message to the server - send()", errno);
-        }
+        
     }
 
     catch (bahiart::NetworkManager::SocketException& exception)
@@ -113,7 +126,7 @@ void bahiart::NetworkManager::UdpSocket::setupAddress(const std::string HOST_NAM
     {
         memset(&hints, 0, sizeof(hints));
         hints.ai_family = AF_UNSPEC;
-        hints.ai_socktype = SOCK_DGRAM; // TCP
+        hints.ai_socktype = SOCK_DGRAM; // UDP
 
         /* Getting server info from the initial addrinfo (hints), HOST/IP and port - getaddrinfo() */
         if ((getAddrStatus = getaddrinfo(HOST_NAME.c_str(), PORT.c_str(), &hints, &(this->serverInfo))) != 0)
@@ -148,18 +161,30 @@ void bahiart::NetworkManager::UdpSocket::sendMessage(std::string message){
 
     try
     {
-        char buffer[256];
+        /* Defines the size of the message buffer as the length of the message per se, 
+        plus 4 bytes for the initial unsigned int representing message length */
+        const unsigned int bufferLength = message.length() + 4;
+        
+        /* Encodes the length of the message, from a host unsigned int, to a network one */
+        const unsigned int encodedMsgLength = htonl(message.length());
 
-        memset(buffer,0,256);
-        unsigned long size = message.length();
-        unsigned long net_size = htonl(size);
-        memcpy(buffer,&net_size,4);
-        strcpy(buffer+4,message.c_str());
+        /* Initializes vector for the message buffer as char type (1 byte per element), and
+        resizes it to it's expected length */
+        std::vector<char> buffer{};
+        buffer.resize(bufferLength);
 
-        if (sendto(socketFileDescriptor, buffer, size+4, 0, serverInfo->ai_addr, serverInfo->ai_addrlen) < 0)
-        {
+        /* Ensures that all of message buffer's memory is set to 0 */
+        memset(buffer.data(), 0, bufferLength);
+
+        /* Sets first 4 bytes of the buffer to store the encoded message length unsigned int */
+        memcpy(buffer.data(), &encodedMsgLength, 4);
+
+        /* Sets the rest of the buffer to store the message received as a parameter, fifth index onwards */
+        strcpy(buffer.data() + 4, message.c_str());
+
+        /* Tries to send the message buffer from the just established connection, otherwise, throws an error */
+        if (sendto(socketFileDescriptor, buffer.data(), bufferLength, 0, serverInfo->ai_addr, serverInfo->ai_addrlen) < 0)
             throw SocketException("Couldn't send the message to the server - sendto()", errno);
-        }
     }
 
     catch (const bahiart::NetworkManager::SocketException& exception)

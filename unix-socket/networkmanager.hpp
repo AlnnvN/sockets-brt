@@ -4,6 +4,7 @@
 #include <string.h>
 #include <iostream>
 #include <memory>
+#include <vector>
 
 /*UNIX dependencies*/
 #include <unistd.h>
@@ -13,90 +14,95 @@
 #include <netdb.h>
 
 
-namespace bahiart
-{
-    namespace NetworkManager
+namespace bahiart::NetworkManager
+{   
+    class SocketException : std::exception
     {
-        class SocketException : std::exception
+    private:
+        const char *description{};
+        int errNum{};
+
+    public:
+        SocketException(const char *description) : description(description) {}
+
+        /* Overload that receives error description and the just set global variable 'errno' by the failed function */
+        SocketException(const char *description, int errNum) : description(description), errNum(errNum) {}
+
+        const char *what() const throw()
         {
-        private:
-            const char *description{};
-            int errNum{};
-
-        public:
-            SocketException(const char *description) : description(description) {}
-
-            /* Receives error description and the just set global variable 'errno' by the failed function */
-            SocketException(const char *description, int errNum) : description(description), errNum(errNum) {}
-
-            const char *what() const throw()
+            /* Ensures errno was set by a failed function and gets it's error string */
+            if (errNum != (int){} && errNum != 22)
             {
-                if(errNum != (int){} && errNum != 22){
-                    auto result = std::make_shared<char *>(new char[strlen(description) + strlen(strerror(this->errNum))+1]);
-                    strcpy(*result, description);
-                    strcat(*result, " -> ");
-                    strcat(*result,strerror(this->errNum));
-                    return *result;
-                }
-                else{
-                    return description;
-                }
+                /* Initializes a empty array, big enough to hold message, respective error string, and formatting spaces */
+                auto resultStr = std::make_shared<char *>(new char[strlen(description) + strlen(strerror(this->errNum)) + 5]);
+                memset(*resultStr, 0, strlen(*resultStr));
+
+                /* Concatenates message, formatting, and error string from errno */
+                strcpy(*resultStr, description);
+                strcat(*resultStr, " -> ");
+                strcat(*resultStr, strerror(this->errNum));
+                return *resultStr;
             }
-        };
+            else /* If errno was not defined, returns the description alone */
+            {
+                return description;
+            }
+        }
+    };
 
-        /* Socket base abstract class */
-        class Socket
-        {
-        protected:
-            int socketFileDescriptor{};
-            struct addrinfo *serverInfo{};
+    /* Socket base abstract class */
+    class Socket
+    {
+    protected:
+        int socketFileDescriptor{};
+        struct addrinfo *serverInfo{};
 
-        public:
-            virtual void setupAddress(const std::string HOST_NAME, const std::string PORT) = 0;
+    public:
+        virtual void setupAddress(const std::string HOST_NAME, const std::string PORT) = 0;
 
-            virtual void openConnection() = 0;
+        virtual void openConnection() = 0;
 
-            virtual void sendMessage(std::string message) = 0;
+        virtual void sendMessage(std::string message) = 0;
 
-            /* Empty destructor function body required */
-            virtual ~Socket() = 0;
-        };
+        /* Empty destructor function body required */
+        virtual ~Socket() = 0;
+    };
 
-        /* TCP Socket implementation class */
-        class TcpSocket : public bahiart::NetworkManager::Socket
-        {
-        public:
-            /* Sets socket object's addrinfo -> getaddrinfo() and the file descriptor -> socket() */
-            void setupAddress(const std::string HOST_NAME, const std::string PORT) override;
+    /* TCP Socket implementation class */
+    class TcpSocket : public bahiart::NetworkManager::Socket
+    {
+    public:
+        /* Sets socket object's addrinfo -> getaddrinfo() and the file descriptor -> socket() */
+        void setupAddress(const std::string HOST_NAME, const std::string PORT) override;
 
-            /* Establishes TCP connection to the server -> connect() */
-            void openConnection() override;
+        /* Establishes TCP connection to the server -> connect() */
+        void openConnection() override;
 
-            /* Sends message to the stored socket descriptor -> send() */
-            void sendMessage(std::string message) override;
+        /* Sends message to the stored socket descriptor -> send() */
+        void sendMessage(std::string message) override;
 
-            /* Closes connection to remote host (socket descriptor) -> close(), and
-            frees stored addrinfo's linked tree -> freeaddrinfo() */
-            ~TcpSocket() override;
-        };
+        /* Closes connection to remote host (socket descriptor) -> close(), and
+        frees stored addrinfo's linked tree -> freeaddrinfo() */
+        ~TcpSocket() override;
+    };
 
-        /* UDP Socket implementation class */
-        class UdpSocket : public bahiart::NetworkManager::Socket
-        {
-        public:
-            /* Sets socket object's addrinfo -> getaddrinfo() and file descriptor -> socket()*/
-            void setupAddress(const std::string HOST_NAME, const std::string PORT) override;
+    /* UDP Socket implementation class */
+    class UdpSocket : public bahiart::NetworkManager::Socket
+    {
+    public:
+        /* Sets socket object's addrinfo -> getaddrinfo() and file descriptor -> socket()*/
+        void setupAddress(const std::string HOST_NAME, const std::string PORT) override;
 
-            /* Sends message directly using UDP protocol to the stored socket descriptor -> sendto() */
-            void sendMessage(std::string message) override;
+        /* Sends message directly using UDP protocol to the stored socket descriptor -> sendto() */
+        void sendMessage(std::string message) override;
 
-            /* Frees stored addrinfo's linked tree -> freeaddrinfo */
-            ~UdpSocket() override;
-            
-        private:
-            void openConnection() override {}
-        };
-    }
+        /* Frees stored addrinfo's linked tree -> freeaddrinfo */
+        ~UdpSocket() override;
+        
+    private:
+        void openConnection() override {}
+    };
 }
+
 
 #endif
