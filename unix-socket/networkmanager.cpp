@@ -154,7 +154,7 @@ bool bahiart::NetworkManager::TcpSocket::receiveMessage()
         /*
         This while function (faithfully) will do the following steps:
 
-        1. Check if the number of read bytes is less than the total number of bytes, if don't, continues the loop
+        1. Check if the number of read bytes is less than the total number of bytes, if it's not, continues the loop
 
         2. will sum to the number of bytes read the number of bytes received:
                 In this step, the read function parameters will be - besides the socketfiledescriptor
