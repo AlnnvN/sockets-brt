@@ -46,13 +46,15 @@ int main(int argc, char *argv[])
      if (newsockfd < 0) 
           error("ERROR on accept");
 
-    bzero(buffer,256);
-    n = read(newsockfd,buffer,255);
+    bzero(buffer,255);
+    n = read(newsockfd,buffer,4);
     if (n < 0) error("ERROR reading from socket");
-    printf("Here is the message: %s\n",buffer);
-    n = write(newsockfd,"I got your message",18);
-    if (n < 0) error("ERROR writing to socket");
+
+    unsigned int length = ntohl(*((unsigned int *) buffer));
+    printf("Here is the length: %u\n",length);
     
+    n = read(newsockfd,buffer+4,251);
+    printf("Here is the message: %s\n",buffer+4);
     close(newsockfd);
     close(sockfd);
     return 0; 

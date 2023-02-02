@@ -70,7 +70,15 @@ void bahiart::NetworkManager::TcpSocket::sendMessage(std::string message)
 {
     try
     {
-        if (send(this->socketFileDescriptor, message.c_str(), strlen(message.c_str()), 0) < 0)
+        char buffer[256];
+
+        memset(buffer,0,256);
+        unsigned long size = message.length();
+        unsigned long net_size = htonl(size);
+        memcpy(buffer,&net_size,4);
+        strcpy(buffer+4,message.c_str());
+
+        if (send(this->socketFileDescriptor, buffer, size+4, 0) < 0)
         {
             throw SocketException("Couldn't send the message to the server - send()", errno);
         }
@@ -140,7 +148,15 @@ void bahiart::NetworkManager::UdpSocket::sendMessage(std::string message){
 
     try
     {
-        if (sendto(socketFileDescriptor, message.c_str(), strlen(message.c_str()), 0, serverInfo->ai_addr, serverInfo->ai_addrlen) < 0)
+        char buffer[256];
+
+        memset(buffer,0,256);
+        unsigned long size = message.length();
+        unsigned long net_size = htonl(size);
+        memcpy(buffer,&net_size,4);
+        strcpy(buffer+4,message.c_str());
+
+        if (sendto(socketFileDescriptor, buffer, size+4, 0, serverInfo->ai_addr, serverInfo->ai_addrlen) < 0)
         {
             throw SocketException("Couldn't send the message to the server - sendto()", errno);
         }
