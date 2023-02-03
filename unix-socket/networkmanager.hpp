@@ -16,23 +16,41 @@
 
 
 
-namespace bahiart
-{
-    namespace NetworkManager
+namespace bahiart::NetworkManager
+{   
+    class SocketException : std::exception
     {
-        class SocketException : std::exception
+    private:
+        const char *description{};
+        int errNum{};
+
+    public:
+        SocketException(const char *description) : description(description) {}
+
+        /* Overload that receives error description and the just set global variable 'errno' by the failed function */
+        SocketException(const char *description, int errNum) : description(description), errNum(errNum) {}
+
+        const char *what() const throw()
         {
-        private:
-            const char *description{};
+            /* Ensures errno was set by a failed function and gets it's error string */
+            if (errNum != (int){} && errNum != 22)
+            {
+                /* Initializes a empty array, big enough to hold message, respective error string, and formatting spaces */
+                auto resultStr = std::make_shared<char *>(new char[strlen(description) + strlen(strerror(this->errNum)) + 5]);
+                memset(*resultStr, 0, strlen(*resultStr));
 
-        public:
-            SocketException(const char *description) : description(description) {}
-
-            const char *what()
+                /* Concatenates message, formatting, and error string from errno */
+                strcpy(*resultStr, description);
+                strcat(*resultStr, " -> ");
+                strcat(*resultStr, strerror(this->errNum));
+                return *resultStr;
+            }
+            else /* If errno was not defined, returns the description alone */
             {
                 return description;
             }
-        };
+        }
+    };
 
         /* Socket base abstract class */
         class Socket
