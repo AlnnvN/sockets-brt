@@ -4,6 +4,7 @@
 #include <string.h>
 #include <iostream>
 #include <vector>
+#include <memory>
 
 /*UNIX dependencies*/
 #include <unistd.h>
