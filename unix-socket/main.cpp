@@ -14,6 +14,11 @@ int main(int argc, char *argv[])
         std::getline(std::cin,message);
 
         socket->sendMessage(message);
+        
+        if (socket->receiveMessage()) {
+            std::cout << socket->getBuffer().data() << std::endl;
+        }
+        
     }
     catch (const std::exception& exception)
     {
