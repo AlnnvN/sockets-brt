@@ -111,6 +111,109 @@ void bahiart::NetworkManager::TcpSocket::sendMessage(std::string message)
 
 }
 
+bool bahiart::NetworkManager::TcpSocket::checkMessages()
+
+{
+    /*
+    Object that receives data structure describing a polling request.
+    */
+    struct pollfd ufds;
+    /*
+    The rv variable will receive the output of poll() function, it could be:
+        -1 for error
+        0 for no event occurred in socketfiledescriptor during the limit of waiting time
+        >0 for the number of events occurred in the socketfiledescriptor
+    */ 
+    int rv {};
+
+    ufds.fd = this->socketFileDescriptor;
+    ufds.events = POLLIN; //Set the type of event that poll() will be waiting to happen
+
+    /*poll() receives 3 parameters: 
+        the address of the object that keep the struct of pollfd
+        the number of objects that poll() will be following
+        limit of waiting time that the function will wait for events (-1 makes it wait forever)
+    */
+    rv = poll(&ufds, 1, 1000); 
+    if (rv > 0 && (ufds.revents & POLLIN))
+    {
+        return true;
+    }
+    else 
+    {
+        throw bahiart::NetworkManager::SocketException("No message from server.");
+        return false;
+    }
+    
+}
+
+bool bahiart::NetworkManager::TcpSocket::receiveMessage()
+{
+    if (!checkMessages()) {
+        return false;
+    }
+
+    /*Number of bytes read from the received data.*/
+    int bytesRead {};
+
+    /*Total length of the data received.*/
+    int bufferLength {};
+
+    /* Initializes vector for the message buffer with enough size to initially
+    store the first four bytes received (string length) */
+
+    /* Resizing buffer to fit not only the first four bytes, but also the received message */
+    this->buffer.resize(65536);
+
+    try {
+        
+        if (read(this->socketFileDescriptor, this->buffer.data(), 4) < 4)
+            throw bahiart::NetworkManager::SocketException("Length of message is less than 4 bytes.");
+        
+        /* Convert received string length from network to host */
+        bufferLength = ntohl(*((unsigned int*) this->buffer.data())); 
+        std::cout << bufferLength;
+  
+        /*
+        This while function (faithfully) will do the following steps:
+        1. Checks if the number of read bytes is minor than the total number of bytes, if it's not, continues the loop
+        2. will sum to the number of bytes read the number of bytes received:
+                In this step, the read function parameters will be - besides the socketfiledescriptor
+                parameter - buffer + the number of read bytes AND the total size of the message minus
+                the total of read bytes, i.e: for every loop, the buffer offset will be sumn with
+                the read bytes.
+                ----> 
+                example: if 8 bytes of the message are already read, in the next loop the buffer
+                will receive buffer+8 and the message will start to be written in buffer[8], as so
+                the size of message that the function will read will be updated every loop, until
+                the number of read bytes be equal to the total number of bytes.
+                ---->
+        3. finally, will check if there is more data do be received, if positive, the loop continues
+        */
+        
+        while (bytesRead < bufferLength) {
+            bytesRead += read(this->socketFileDescriptor, this->buffer.data() + bytesRead, bufferLength - bytesRead);
+            if (!checkMessages())
+                break;
+        }
+
+        return true;
+
+    }
+    catch (bahiart::NetworkManager::SocketException exception)
+    {
+        std::cout << "SocketException - Error during receiving messages ---> " << exception.what() << std::endl;
+        return false;
+    }
+
+    catch (std::exception exception)
+    {
+        std::cout << "std::exception - Default exception at receiveMessage()" << std::endl;
+        return false;
+    }
+    
+}
+
 bahiart::NetworkManager::TcpSocket::~TcpSocket()
 {
     close(this->socketFileDescriptor); // closes connection to the server
@@ -199,6 +302,10 @@ void bahiart::NetworkManager::UdpSocket::sendMessage(std::string message){
         return;
     }
 
+}
+
+std::vector<char> bahiart::NetworkManager::TcpSocket::getBuffer(){
+    return this->buffer;
 }
 
 bahiart::NetworkManager::UdpSocket::~UdpSocket(){
