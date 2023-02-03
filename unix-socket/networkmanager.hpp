@@ -61,7 +61,7 @@ namespace bahiart::NetworkManager
             struct addrinfo *serverInfo{};
 
         public:
-            virtual void setupAddress(std::string HOST_NAME, std::string PORT) = 0;
+            virtual void setupAddress(const std::string HOST_NAME, const std::string PORT) = 0;
 
             virtual void openConnection() = 0;
 
@@ -81,7 +81,7 @@ namespace bahiart::NetworkManager
         {
         public:
             /* Sets socket object's addrinfo -> getaddrinfo() and the file descriptor -> socket() */
-            void setupAddress(std::string HOST_NAME, std::string PORT) override;
+            void setupAddress(const std::string HOST_NAME, const std::string PORT) override;
 
             /* Establishes TCP connection to the server -> connect() */
             void openConnection() override;
@@ -94,7 +94,8 @@ namespace bahiart::NetworkManager
 
             /* Reads messages from the server -> read() */
             bool receiveMessage() override;
-
+            
+            /* Returns vector holding the message received from server */
             std::vector<char> getBuffer() override;
 
             /* Closes connection to remote host (socket descriptor) -> close(), and
@@ -108,7 +109,7 @@ namespace bahiart::NetworkManager
         public:
             /* Sets socket object's addrinfo -> getaddrinfo(), file descriptor -> socket(),
             and connects to the server -> connect() */
-            void setupAddress(std::string HOST_NAME, std::string PORT) override;
+            void setupAddress(const std::string HOST_NAME, const std::string PORT) override;
 
             /* Sends message directly using UDP protocol to the stored socket descriptor -> sendto() */
             void sendMessage(std::string message) override;
