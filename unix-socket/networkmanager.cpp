@@ -144,7 +144,6 @@ bool bahiart::NetworkManager::TcpSocket::checkMessages()
         else 
             {
                 throw bahiart::NetworkManager::SocketException("No message from server --> poll()");
-                return false;
             }
     }
     catch (bahiart::NetworkManager::SocketException exception)
@@ -202,7 +201,7 @@ bool bahiart::NetworkManager::TcpSocket::receiveMessage()
         while (bytesRead < bufferLength) {
             bytesRead += recv(this->socketFileDescriptor, this->buffer.data() + bytesRead, bufferLength - bytesRead, 0);
             if (!checkMessages())
-                return false;
+                break;
         }
 
         return true;
@@ -382,6 +381,7 @@ bool bahiart::NetworkManager::UdpSocket::receiveMessage()
         /* Checking if the data size of received message is equal/greater than 4 bytes */
         if (recvfrom(this->socketFileDescriptor, this->buffer.data(), 4, MSG_PEEK, (struct sockaddr *)&addr, &fromlen) < 4)
             throw bahiart::NetworkManager::SocketException("Length of message is less than 4 bytes.");   
+
         /* 
         Clarifying, in the condition above the parameter MSG_PEEK was used
         because UDP doesn't have support to lost packets, so it only sends
@@ -390,7 +390,7 @@ bool bahiart::NetworkManager::UdpSocket::receiveMessage()
         */
 
         /* Convert received string length from network to host */
-        bufferLength = ntohl(*((unsigned int*) this->buffer.data())); 
+        bufferLength = ntohl(*((unsigned int*) this->buffer.data())) + 4; 
         std::cout << "\nMessage length: " << bufferLength << std::endl; // only for debug purposes
 
         /* Resizing buffer to fit the entire message */
