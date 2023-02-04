@@ -364,11 +364,13 @@ bool bahiart::NetworkManager::UdpSocket::receiveMessage()
         return false;
     } 
     
+    /* Struct designed to be large enough to fit both ipv4 and ipv6 structures */
     struct sockaddr_storage addr{};
+
+    /* Type designed to hold length of socket structures. */
     socklen_t fromlen = sizeof addr;
 
     /* Total length of the received data. */
-    std::string bufferConv {};
     std::size_t bufferLength {};
     
 
