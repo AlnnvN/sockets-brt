@@ -115,7 +115,7 @@ bool bahiart::NetworkManager::TcpSocket::checkMessages()
 
 {
     /*
-    Object that receives data structure describing a polling request.
+    Object that holds data structure describing a polling request.
     */
     struct pollfd ufds;
     /*
@@ -127,24 +127,32 @@ bool bahiart::NetworkManager::TcpSocket::checkMessages()
     int rv {};
 
     ufds.fd = this->socketFileDescriptor;
-    ufds.events = POLLIN; //Set the type of event that poll() will be waiting to happen
+    ufds.events = POLLIN; //Set the type of event that poll() will be waiting to happen -> POLLIN stands for normal data
 
-    /*poll() receives 3 parameters: 
+    /*
+    poll() receives 3 parameters: 
         the address of the object that keep the struct of pollfd
         the number of objects that poll() will be following
         limit of waiting time that the function will wait for events (-1 makes it wait forever)
     */
-    rv = poll(&ufds, 1, 1000); 
-    if (rv > 0 && (ufds.revents & POLLIN))
-    {
-        return true;
+    try {
+        rv = poll(&ufds, 1, 0); 
+        if (rv > 0 && (ufds.revents && POLLIN))
+            {   
+                return true;
+            }
+        else 
+            {
+                throw bahiart::NetworkManager::SocketException("No message from server --> poll()");
+                return false;
+            }
     }
-    else 
+    catch (bahiart::NetworkManager::SocketException exception)
     {
-        throw bahiart::NetworkManager::SocketException("No message from server.");
+        std::cout << "SocketException - Error during checking messages ---> " << exception.what() << std::endl;
         return false;
     }
-    
+
 }
 
 bool bahiart::NetworkManager::TcpSocket::receiveMessage()
@@ -156,23 +164,23 @@ bool bahiart::NetworkManager::TcpSocket::receiveMessage()
     /*Number of bytes read from the received data.*/
     int bytesRead {};
 
-    /*Total length of the data received.*/
-    int bufferLength {};
-
-    /* Initializes vector for the message buffer with enough size to initially
-    store the first four bytes received (string length) */
-
-    /* Resizing buffer to fit not only the first four bytes, but also the received message */
-    this->buffer.resize(65536);
+    /* Total length of the received data. */
+    std::size_t bufferLength {};
 
     try {
         
-        if (read(this->socketFileDescriptor, this->buffer.data(), 4) < 4)
+        /* Resizing buffer to fit the first four bytes */
+        this->buffer.resize(4);
+
+        /* Checking if the data size of received message is equal/greater than 4 bytes */
+        if (recv(this->socketFileDescriptor, this->buffer.data(), 4, 0) < 4, 0)
             throw bahiart::NetworkManager::SocketException("Length of message is less than 4 bytes.");
         
         /* Convert received string length from network to host */
         bufferLength = ntohl(*((unsigned int*) this->buffer.data())); 
-        std::cout << bufferLength;
+
+        /* Resizing buffer to fit the entire data expected to be received */
+        this->buffer.resize(bufferLength);
   
         /*
         This while function (faithfully) will do the following steps:
@@ -192,9 +200,9 @@ bool bahiart::NetworkManager::TcpSocket::receiveMessage()
         */
         
         while (bytesRead < bufferLength) {
-            bytesRead += read(this->socketFileDescriptor, this->buffer.data() + bytesRead, bufferLength - bytesRead);
+            bytesRead += recv(this->socketFileDescriptor, this->buffer.data() + bytesRead, bufferLength - bytesRead, 0);
             if (!checkMessages())
-                break;
+                return false;
         }
 
         return true;
@@ -212,6 +220,10 @@ bool bahiart::NetworkManager::TcpSocket::receiveMessage()
         return false;
     }
     
+}
+
+std::vector<char> bahiart::NetworkManager::TcpSocket::getBuffer(){
+    return this->buffer;
 }
 
 bahiart::NetworkManager::TcpSocket::~TcpSocket()
@@ -304,7 +316,109 @@ void bahiart::NetworkManager::UdpSocket::sendMessage(std::string message){
 
 }
 
-std::vector<char> bahiart::NetworkManager::TcpSocket::getBuffer(){
+bool bahiart::NetworkManager::UdpSocket::checkMessages()
+{
+    /*
+    Object that holds data structure describing a polling request.
+    */
+    struct pollfd ufds;
+    /*
+    The rv variable will receive the output of poll() function, it could be:
+        -1 for error
+        0 for no event occurred in socketfiledescriptor during the limit of waiting time
+        >0 for the number of events occurred in the socketfiledescriptor
+    */ 
+    int rv {};
+
+    ufds.fd = this->socketFileDescriptor;
+    ufds.events = POLLIN; //Set the type of event that poll() will be waiting to happen -> POLLIN stands for normal data
+
+    /*
+    poll() receives 3 parameters: 
+        the address of the object that keep the struct of pollfd
+        the number of objects that poll() will be following
+        limit of waiting time that the function will wait for events (-1 makes it wait forever)
+    */
+    try {
+        rv = poll(&ufds, 1, 20); 
+        if (rv > 0 && (ufds.revents && POLLIN))
+            {   
+                return true;
+            }
+        else 
+            {
+                throw bahiart::NetworkManager::SocketException("No message from server --> poll()");
+                return false;
+            }
+    }
+    catch (bahiart::NetworkManager::SocketException exception)
+    {
+        std::cout << "SocketException - Error during checking messages ---> " << exception.what() << std::endl;
+        return false;
+    }
+}
+
+bool bahiart::NetworkManager::UdpSocket::receiveMessage()
+{
+    if (!checkMessages()) {
+        return false;
+    } 
+    
+    struct sockaddr_storage addr{};
+    socklen_t fromlen = sizeof addr;
+
+    /* Total length of the received data. */
+    std::string bufferConv {};
+    std::size_t bufferLength {};
+    
+
+    try {  
+        
+        /* Resizing buffer to fit the first 4 bytes */
+        this->buffer.resize(4);
+
+        /* Checking if the data size of received message is equal/greater than 4 bytes */
+        if (recvfrom(this->socketFileDescriptor, this->buffer.data(), 4, MSG_PEEK, (struct sockaddr *)&addr, &fromlen) < 4)
+            throw bahiart::NetworkManager::SocketException("Length of message is less than 4 bytes.");   
+        /* 
+        Clarifying, in the condition above the parameter MSG_PEEK was used
+        because UDP doesn't have support to lost packets, so it only sends
+        the data one time. MSG_PEEK condition tells the server we are only
+        taking a peek inside the data, and we will actually read it after that.
+        */
+
+        /* Convert received string length from network to host */
+        bufferLength = ntohl(*((unsigned int*) this->buffer.data())); 
+        std::cout << "\nMessage length: " << bufferLength << std::endl; // only for debug purposes
+
+        /* Resizing buffer to fit the entire message */
+        this->buffer.resize(bufferLength);
+        
+        /* Writing the message in buffer vector */
+        recvfrom(this->socketFileDescriptor, this->buffer.data(), bufferLength, 0, (struct sockaddr *)&addr, &fromlen);
+
+        /* Erasing first 4 elements from buffer where length of message is */
+        this->buffer.erase(this->buffer.begin(), this->buffer.begin()+4);
+
+        return true;
+
+    }
+    catch (bahiart::NetworkManager::SocketException exception)
+    {
+        std::cout << "SocketException - Error during receiving messages ---> " << exception.what() << std::endl;
+        return false;
+    }
+
+    catch (std::exception exception)
+    {
+        std::cout << "std::exception - Default exception at receiveMessage()" << std::endl;
+        return false;
+    }
+    
+}
+
+std::vector<char> bahiart::NetworkManager::UdpSocket::getBuffer()
+{   
     return this->buffer;
 }
 

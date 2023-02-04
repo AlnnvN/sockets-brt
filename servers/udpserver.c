@@ -1,3 +1,4 @@
+
 /* A simple server in the internet domain using TCP
    The port number is passed as an argument */
 #include <stdio.h>
@@ -16,43 +17,61 @@ void error(const char *msg)
 
 int main(int argc, char *argv[])
 {
-     int sockfd, newsockfd, portno;
-     socklen_t clilen;
-     char buffer[256];
-     struct sockaddr_in serv_addr;
-     struct sockaddr_storage their_addr;
-     socklen_t addr_len;
-     int n;
-     if (argc < 2) {
-         fprintf(stderr,"ERROR, no port provided\n");
-         exit(1);
-     }
-     sockfd = socket(AF_INET, SOCK_DGRAM, 0);
-     if (sockfd < 0) 
-        error("ERROR opening socket");
-     bzero((char *) &serv_addr, sizeof(serv_addr));
-     portno = atoi(argv[1]);
-     serv_addr.sin_family = AF_INET;
-     serv_addr.sin_addr.s_addr = INADDR_ANY;
-     serv_addr.sin_port = htons(portno);
+    int sockfd;
+    char buffer[255];
+    const char *hello = "Hello from server";
+    struct sockaddr_in servaddr, cliaddr;
 
-     if (bind(sockfd, (struct sockaddr *) &serv_addr,
-              sizeof(serv_addr)) < 0) 
-              error("ERROR on binding");
+    if ( (sockfd = socket(AF_INET, SOCK_DGRAM, 0)) < 0 ) {
+        perror("socket creation failed");
+    }
 
-     listen(sockfd,5);
+    memset(&servaddr, 0, sizeof(servaddr));
+    memset(&cliaddr, 0, sizeof(cliaddr));
 
-    bzero(buffer,256);
-    recvfrom(sockfd, buffer, 256 , 0, (struct sockaddr *)&their_addr, &addr_len);
+    servaddr.sin_family    = AF_INET; // IPv4
+    servaddr.sin_addr.s_addr = INADDR_ANY;
+    servaddr.sin_port = htons(atoi(argv[1]));
+
+    if ( bind(sockfd, (const struct sockaddr *)&servaddr, 
+            sizeof(servaddr)) < 0 )
+    {
+        perror("bind failed");
+    }
+
+    int n;
+    socklen_t len;
+    len = sizeof(cliaddr);  //len is value/result
+
+    memset(buffer, 0, 255);
+    n = recvfrom(sockfd, buffer, 4, 
+                MSG_PEEK, ( struct sockaddr *) &cliaddr,
+                &len);
     
-    printf("Here is the message: %s\n",buffer);
-    n = write(newsockfd,"I got your message",18);
-    if (n < 0) error("ERROR writing to socket");
-   
-        
-    
+    ssize_t bufferlgnt = htonl(*((unsigned int*) buffer)); 
+    printf("Here is the length: %ld\n", bufferlgnt);
 
-    close(newsockfd);
+    n = recvfrom(sockfd, buffer, 255, 
+                0, ( struct sockaddr *) &cliaddr,
+                &len);
+
+
+    printf("Here is the message: %s\n",buffer+4);
+
+
+    memset(buffer, 0, 255);
+    unsigned long size = strlen(hello) + 4;
+    unsigned long net_size = htonl(size);
+    memcpy(buffer, &net_size, 4);
+    strcpy(buffer+4, hello);
+
+
+    n = sendto(sockfd, buffer, strlen(hello) + 4, 
+        0, (const struct sockaddr *) &cliaddr,
+            len);
+    if (n < 0) error("Error on sending");
+
+
     close(sockfd);
     return 0; 
 }
