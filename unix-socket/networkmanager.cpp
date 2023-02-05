@@ -136,7 +136,7 @@ bool bahiart::NetworkManager::TcpSocket::checkMessages()
         limit of waiting time that the function will wait for events (-1 makes it wait forever)
     */
     try {
-        rv = poll(&ufds, 1, 0); 
+        rv = poll(&ufds, 1, 20); 
         if (rv > 0 && (ufds.revents && POLLIN))
             {   
                 return true;
@@ -172,7 +172,7 @@ bool bahiart::NetworkManager::TcpSocket::receiveMessage()
         this->buffer.resize(4);
 
         /* Checking if the data size of received message is equal/greater than 4 bytes */
-        if (recv(this->socketFileDescriptor, this->buffer.data(), 4, 0) < 4, 0)
+        if (recv(this->socketFileDescriptor, this->buffer.data(), 4, 0) < 4)
             throw bahiart::NetworkManager::SocketException("Length of message is less than 4 bytes.");
         
         /* Convert received string length from network to host */
@@ -183,25 +183,24 @@ bool bahiart::NetworkManager::TcpSocket::receiveMessage()
   
         /*
         This while function (faithfully) will do the following steps:
-        1. Checks if the number of read bytes is minor than the total number of bytes, if it's not, continues the loop
-        2. will sum to the number of bytes read the number of bytes received:
+        1. Checks if the number of read bytes is minor than the total number of bytes and if there is more data to be received, if positive, the loop continues
+        
+        2. Sumn to the number of bytes read the number of bytes received:
                 In this step, the read function parameters will be - besides the socketfiledescriptor
                 parameter - buffer + the number of read bytes AND the total size of the message minus
                 the total of read bytes, i.e: for every loop, the buffer offset will be sumn with
                 the read bytes.
+                
                 ----> 
                 example: if 8 bytes of the message are already read, in the next loop the buffer
                 will receive buffer+8 and the message will start to be written in buffer[8], as so
                 the size of message that the function will read will be updated every loop, until
                 the number of read bytes be equal to the total number of bytes.
                 ---->
-        3. finally, will check if there is more data do be received, if positive, the loop continues
         */
         
-        while (bytesRead < bufferLength) {
+        while (bytesRead < bufferLength && checkMessages()) {
             bytesRead += recv(this->socketFileDescriptor, this->buffer.data() + bytesRead, bufferLength - bytesRead, 0);
-            if (!checkMessages())
-                break;
         }
 
         return true;
