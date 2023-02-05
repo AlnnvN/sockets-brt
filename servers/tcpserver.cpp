@@ -82,7 +82,7 @@ int main(int argc, char *argv[]){
         //RECV()
         /* receives first four bytes */
         int bytesRead = 0;
-        msgBuffer.resize(4);
+        msgBuffer.resize(4, 0);
         if(recv(theirFileDescriptor, msgBuffer.data(), 4, 0) < 4){
             std::cout << "Server -> failed to read the first four bytes (length) of the message - recv()" << std::endl;
         }
@@ -109,6 +109,7 @@ int main(int argc, char *argv[]){
         unsigned long encondedSendLength = htonl(sendLength);
 
         /* clears msgBuffer to store response */
+        msgBuffer.clear();
         msgBuffer.resize(sendLength + 4, 0);
         std::cout << "Buffer capacity: " << msgBuffer.capacity() << std::endl;
         
