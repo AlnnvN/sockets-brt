@@ -14,8 +14,6 @@ int main(int argc, char *argv[])
         std::getline(std::cin,message);
 
         socket->sendMessage(message); 
-        
-
 
         while (socket->receiveMessage()) {
         std::cout << "Server response: " << socket->getBuffer().data() << std::endl;

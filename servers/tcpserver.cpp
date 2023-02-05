@@ -106,10 +106,11 @@ int main(int argc, char *argv[]){
         /* response (sends back the received message)*/
         std::string sendMsg = "Message received! -> ";
         unsigned int sendLength = sendMsg.length() + msgBuffer.size();
-        unsigned int encondedSendLength = htonl(sendLength);
+        unsigned long encondedSendLength = htonl(sendLength);
 
         /* clears msgBuffer to store response */
-        msgBuffer.resize(sendLength + 4);
+        msgBuffer.resize(sendLength + 4, 0);
+        std::cout << "Buffer capacity: " << msgBuffer.capacity() << std::endl;
         
         memset(msgBuffer.data(), 0, msgBuffer.capacity());
 
@@ -119,7 +120,7 @@ int main(int argc, char *argv[]){
         strcpy(msgBuffer.data() + 4 + sendMsg.length(), recvMsg.c_str());
 
         for(int i = 0; i < 5; i++){ //send the message i times
-            std::cout << "Server -> sending response '" << msgBuffer.data() + 4 << "' - length: " << msgBuffer.capacity() - 4 << std::endl;
+            std::cout << "Server -> sending response '" << msgBuffer.data() + 4 << "' - length: " << msgBuffer.size() - 4 << std::endl;
 
             //SEND()
             if(send(theirFileDescriptor, msgBuffer.data(), sendLength + 4, 0) < sendLength){

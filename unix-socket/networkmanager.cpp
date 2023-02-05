@@ -72,15 +72,15 @@ void bahiart::NetworkManager::TcpSocket::sendMessage(std::string message)
     {
         /* Defines the size of the message buffer as the length of the message per se, 
         plus 4 bytes for the initial unsigned int representing message length */
-        const unsigned int bufferLength = message.length() + 4;
+        const unsigned long bufferLength = message.length() + 4;
         
         /* Encodes the length of the message, from a host unsigned int, to a network one */
-        const unsigned int encodedMsgLength = htonl(message.length());
+        const unsigned long encodedMsgLength = htonl(message.length());
 
         /* Initializes vector for the message buffer as char type (1 byte per element), and
         resizes it to it's expected length */
         std::vector<char> buffer{};
-        buffer.resize(bufferLength);
+        buffer.resize(bufferLength, 0);
 
         /* Ensures that all of message buffer's memory is set to 0 */
         memset(buffer.data(), 0, bufferLength);
@@ -171,7 +171,7 @@ bool bahiart::NetworkManager::TcpSocket::receiveMessage()
     try {
         
         /* Resizing buffer to fit the first four bytes */
-        this->buffer.resize(4);
+        this->buffer.resize(4, 0);
 
         /* Checking if the data size of received message is equal/greater than 4 bytes */
         if (recv(this->socketFileDescriptor, this->buffer.data(), 4, 0) < 4)
@@ -181,7 +181,7 @@ bool bahiart::NetworkManager::TcpSocket::receiveMessage()
         bufferLength = ntohl(*((unsigned long*) this->buffer.data())); 
 
         /* Resizing buffer to fit the entire data expected to be received */
-        this->buffer.resize(bufferLength);
+        this->buffer.resize(bufferLength, 0);
   
         /*
         This while function (faithfully) will do the following steps:
@@ -286,7 +286,7 @@ void bahiart::NetworkManager::UdpSocket::sendMessage(std::string message){
         /* Initializes vector for the message buffer as char type (1 byte per element), and
         resizes it to it's expected length */
         std::vector<char> buffer{};
-        buffer.resize(bufferLength);
+        buffer.resize(bufferLength, 0);
 
         /* Ensures that all of message buffer's memory is set to 0 */
         memset(buffer.data(), 0, bufferLength);
@@ -377,7 +377,7 @@ bool bahiart::NetworkManager::UdpSocket::receiveMessage()
     try {  
         
         /* Resizing buffer to fit the first 4 bytes */
-        this->buffer.resize(4);
+        this->buffer.resize(4, 0);
 
         /* Checking if the data size of received message is equal/greater than 4 bytes */
         if (recvfrom(this->socketFileDescriptor, this->buffer.data(), this->buffer.capacity(), MSG_PEEK, (struct sockaddr *)&addr, &fromlen) < 4)
@@ -395,7 +395,7 @@ bool bahiart::NetworkManager::UdpSocket::receiveMessage()
         std::cout << "\nMessage length: " << bufferLength << std::endl; // only for debug purposes
 
         /* Resizing buffer to fit the entire message */
-        this->buffer.resize(bufferLength + 4);
+        this->buffer.resize(bufferLength + 4, 0);
         
         /* Writing the message in buffer vector */
         if (recvfrom(this->socketFileDescriptor, this->buffer.data(), this->buffer.capacity(), 0, (struct sockaddr *)&addr, &fromlen) < 0)
