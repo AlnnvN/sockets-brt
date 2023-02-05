@@ -220,8 +220,8 @@ bool bahiart::NetworkManager::TcpSocket::receiveMessage()
     
 }
 
-std::vector<char> bahiart::NetworkManager::TcpSocket::getBuffer(){
-    return this->buffer;
+std::string bahiart::NetworkManager::TcpSocket::getBuffer(){
+    return (std::string)this->buffer.data();
 }
 
 bahiart::NetworkManager::TcpSocket::~TcpSocket()
@@ -346,7 +346,6 @@ bool bahiart::NetworkManager::UdpSocket::checkMessages()
         else 
             {
                 throw bahiart::NetworkManager::SocketException("No message from server --> poll()");
-                return false;
             }
     }
     catch (bahiart::NetworkManager::SocketException exception)
@@ -393,7 +392,8 @@ bool bahiart::NetworkManager::UdpSocket::receiveMessage()
         std::cout << "\nMessage length: " << bufferLength << std::endl; // only for debug purposes
 
         /* Resizing buffer to fit the entire message */
-        this->buffer.resize(bufferLength + 4);
+        this->buffer.resize(bufferLength + 5);
+        
         
         /* Writing the message in buffer vector */
         recvfrom(this->socketFileDescriptor, this->buffer.data(), this->buffer.capacity(), 0, (struct sockaddr *)&addr, &fromlen);
@@ -418,9 +418,8 @@ bool bahiart::NetworkManager::UdpSocket::receiveMessage()
     
 }
 
-std::vector<char> bahiart::NetworkManager::UdpSocket::getBuffer()
-{   
-    return this->buffer;
+std::string bahiart::NetworkManager::UdpSocket::getBuffer(){
+    return (std::string)this->buffer.data();
 }
 
 bahiart::NetworkManager::UdpSocket::~UdpSocket(){

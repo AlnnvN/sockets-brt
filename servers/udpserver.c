@@ -19,7 +19,7 @@ int main(int argc, char *argv[])
 {
     int sockfd;
     char buffer[255];
-    const char *hello = "Hello from server";
+    const char *hello = "I speak english my friend";
     struct sockaddr_in servaddr, cliaddr;
 
     if ( (sockfd = socket(AF_INET, SOCK_DGRAM, 0)) < 0 ) {

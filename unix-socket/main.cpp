@@ -3,19 +3,20 @@
 
 int main(int argc, char *argv[])
 {
-    auto socket = std::make_unique<bahiart::NetworkManager::UdpSocket>();
+    std::unique_ptr<bahiart::NetworkManager::Socket> socket = std::make_unique<bahiart::NetworkManager::TcpSocket>();
     std::string message;
     try
     {
         socket->setupAddress(argv[1], argv[2]);
-        //socket->openConnection();
+        socket->openConnection();
 
         std::cout << "Write a message: ";
         std::getline(std::cin,message);
         socket->sendMessage(message);
         
+        
         while (socket->receiveMessage())
-            std::cout << "Actual Message: " << socket->getBuffer().data() << std::endl;
+            std::cout << "Message: " << socket->getBuffer() << std::endl;
         
     }
     catch (const std::exception& exception)
