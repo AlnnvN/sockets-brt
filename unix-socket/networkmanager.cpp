@@ -190,7 +190,7 @@ bool bahiart::NetworkManager::TcpSocket::receiveMessage()
                 parameter - buffer + the number of read bytes AND the total size of the message minus
                 the total of read bytes, i.e: for every loop, the buffer offset will be sumn with
                 the read bytes.
-                
+
                 ----> 
                 example: if 8 bytes of the message are already read, in the next loop the buffer
                 will receive buffer+8 and the message will start to be written in buffer[8], as so
@@ -385,7 +385,7 @@ bool bahiart::NetworkManager::UdpSocket::receiveMessage()
         Clarifying, in the condition above the parameter MSG_PEEK was used
         because UDP doesn't have support to lost packets, so it only sends
         the data one time. MSG_PEEK condition tells the server we are only
-        taking a peek inside the data, and we will actually read it after that.
+        taking a peek inside the data, and we will actually read it later.
         */
 
         /* Convert received string length from network to host */
