@@ -91,7 +91,7 @@ int main(int argc, char *argv[]){
     
         /* clears msgBuffer to receive the message */
         msgBuffer.resize(recvLength, 0);
-        memset(msgBuffer.data(), 0, msgBuffer.size());
+        memset(msgBuffer.data(), 0, msgBuffer.capacity());
 
         while(bytesRead < recvLength){
             bytesRead += recv(theirFileDescriptor, msgBuffer.data() + bytesRead, recvLength - bytesRead, 0);
@@ -109,7 +109,7 @@ int main(int argc, char *argv[]){
 
         /* clears msgBuffer to store response */
         msgBuffer.resize(sendLength);
-        memset(msgBuffer.data(), 0, msgBuffer.size());
+        memset(msgBuffer.data(), 0, msgBuffer.capacity());
 
         /* structures response inside msgBuffer */
         memcpy(msgBuffer.data(), &sendLength, 4); //first four bytes (length)
