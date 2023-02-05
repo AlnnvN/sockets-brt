@@ -10,8 +10,22 @@ int main(int argc, char *argv[])
         socket->setupAddress(argv[1], argv[2]);
         socket->openConnection();
 
-        //std::cout << "Write a message: ";
-        //std::getline(std::cin,message);
+        std::cout << "Write a message: ";
+        std::getline(std::cin,message);
+        socket->sendMessage(message);
+        
+        
+        while (socket->receiveMessage())
+            std::cout << "Message: " << socket->getBuffer() << std::endl;
+        
+    }
+    catch (const std::exception& exception)
+    {
+        std::cout << "std::exception - Default exception at main()" << std::endl;
+        return 0;
+    }
+    return 0;
+}
 
         while (socket->receiveMessage()) {
         std::cout << "Message Received." << std::endl;}

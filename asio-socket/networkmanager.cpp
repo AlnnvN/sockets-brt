@@ -121,7 +121,6 @@ void bahiart::NetworkManager::UdpSocket::sendMessage(std::string message)
 
 bahiart::NetworkManager::UdpSocket::~UdpSocket(){
     this->socket->close();
-    std::cout << "Destrutor"; 
 }
 
 bahiart::NetworkManager::Socket::~Socket(){}
