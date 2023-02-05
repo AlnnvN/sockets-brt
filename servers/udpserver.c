@@ -60,7 +60,7 @@ int main(int argc, char *argv[])
 
 
     memset(buffer, 0, 255);
-    unsigned long size = strlen(hello) + 4;
+    unsigned long size = strlen(hello);
     unsigned long net_size = htonl(size);
     memcpy(buffer, &net_size, 4);
     strcpy(buffer+4, hello);
