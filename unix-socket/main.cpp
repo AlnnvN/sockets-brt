@@ -13,19 +13,19 @@ int main(int argc, char *argv[])
         std::cout << "Write a message: ";
         std::getline(std::cin,message);
 
-        socket->sendMessage(message);
+        socket->sendMessage(message); 
         
 
-        while(true){
-            if(socket->receiveMessage()){
-                std::cout << "Server response: " << socket->getBuffer().data() << std::endl;
-            }
-        }  
+
+        while (socket->receiveMessage()) {
+        std::cout << "Server response: " << socket->getBuffer().data() << std::endl;
+        std::cout << "Message Length: " << socket->getBuffer().capacity() << std::endl;
+        }
+        
     }
     catch (const std::exception& exception)
     {
         std::cout << "std::exception - Default exception at main()" << std::endl;
         return 0;
     }
-    return 0;
 }

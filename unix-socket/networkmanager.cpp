@@ -125,18 +125,19 @@ bool bahiart::NetworkManager::TcpSocket::checkMessages()
         >0 for the number of events occurred in the socketfiledescriptor
     */ 
     int rv {};
+        try {
+        ufds.fd = this->socketFileDescriptor;
+        ufds.events = POLLIN; //Set the type of event that poll() will be waiting to happen -> POLLIN stands for normal data
 
-    ufds.fd = this->socketFileDescriptor;
-    ufds.events = POLLIN; //Set the type of event that poll() will be waiting to happen -> POLLIN stands for normal data
+        /*
+        poll() receives 3 parameters: 
+            the address of the object that keep the struct of pollfd
+            the number of objects that poll() will be following
+            limit of waiting time that the function will wait for events (-1 makes it wait forever)
+        */
 
-    /*
-    poll() receives 3 parameters: 
-        the address of the object that keep the struct of pollfd
-        the number of objects that poll() will be following
-        limit of waiting time that the function will wait for events (-1 makes it wait forever)
-    */
-    try {
-        rv = poll(&ufds, 1, 20); 
+        rv = poll(&ufds, 1, 2000); // -> setted the timeout to 2000 only for working with the debug server
+
         if (rv > 0 && (ufds.revents && POLLIN))
             {   
                 return true;
@@ -166,7 +167,7 @@ bool bahiart::NetworkManager::TcpSocket::receiveMessage()
 
     /* Total length of the received data. */
     std::size_t bufferLength {};
-
+    
     try {
         
         /* Resizing buffer to fit the first four bytes */
@@ -177,7 +178,7 @@ bool bahiart::NetworkManager::TcpSocket::receiveMessage()
             throw bahiart::NetworkManager::SocketException("Length of message is less than 4 bytes.");
         
         /* Convert received string length from network to host */
-        bufferLength = ntohl(*((unsigned int*) this->buffer.data())); 
+        bufferLength = ntohl(*((unsigned long*) this->buffer.data())); 
 
         /* Resizing buffer to fit the entire data expected to be received */
         this->buffer.resize(bufferLength);
@@ -397,7 +398,8 @@ bool bahiart::NetworkManager::UdpSocket::receiveMessage()
         this->buffer.resize(bufferLength + 4);
         
         /* Writing the message in buffer vector */
-        recvfrom(this->socketFileDescriptor, this->buffer.data(), this->buffer.capacity(), 0, (struct sockaddr *)&addr, &fromlen);
+        if (recvfrom(this->socketFileDescriptor, this->buffer.data(), this->buffer.capacity(), 0, (struct sockaddr *)&addr, &fromlen) < 0)
+            throw bahiart::NetworkManager::SocketException("recvfrom()");
 
         /* Erasing first 4 elements from buffer where length of message is */
         this->buffer.erase(this->buffer.begin(), this->buffer.begin()+4);

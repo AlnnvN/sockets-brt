@@ -88,6 +88,7 @@ int main(int argc, char *argv[]){
         }
         
         recvLength = ntohl(*((unsigned int *)msgBuffer.data()));
+        std::cout << "Receive length: " << recvLength << std::endl;
     
         /* clears msgBuffer to receive the message */
         msgBuffer.resize(recvLength, 0);
@@ -100,27 +101,28 @@ int main(int argc, char *argv[]){
         /* copies the message from the msgBuffer to the recv string */
         std::string recvMsg(msgBuffer.begin(), msgBuffer.end());
         
-        std::cout << "Server -> received message '" << recvMsg << "' - length: " << msgBuffer.size() << std::endl;
+        std::cout << "Server -> received message '" << recvMsg << "' - length: " << recvLength << std::endl;
 
         /* response (sends back the received message)*/
         std::string sendMsg = "Message received! -> ";
-        unsigned int sendLength = sendMsg.length() + msgBuffer.size() + 4;
+        unsigned int sendLength = sendMsg.length() + msgBuffer.size();
         unsigned int encondedSendLength = htonl(sendLength);
 
         /* clears msgBuffer to store response */
-        msgBuffer.resize(sendLength);
+        msgBuffer.resize(sendLength + 4);
+        
         memset(msgBuffer.data(), 0, msgBuffer.capacity());
 
         /* structures response inside msgBuffer */
-        memcpy(msgBuffer.data(), &sendLength, 4); //first four bytes (length)
+        memcpy(msgBuffer.data(), &encondedSendLength, 4); //first four bytes (length)
         strcpy(msgBuffer.data() + 4, sendMsg.c_str());
         strcpy(msgBuffer.data() + 4 + sendMsg.length(), recvMsg.c_str());
 
         for(int i = 0; i < 5; i++){ //send the message i times
-            std::cout << "Server -> sending response '" << msgBuffer.data() + 4 << "' - length: " << msgBuffer.size() - 4 << std::endl;
+            std::cout << "Server -> sending response '" << msgBuffer.data() + 4 << "' - length: " << msgBuffer.capacity() - 4 << std::endl;
 
             //SEND()
-            if(send(theirFileDescriptor, msgBuffer.data(), sendLength, 0) < sendLength){
+            if(send(theirFileDescriptor, msgBuffer.data(), sendLength + 4, 0) < sendLength){
                 std::cout << "Server -> failed to send response" << std::endl;
                 exit(0);
             }
