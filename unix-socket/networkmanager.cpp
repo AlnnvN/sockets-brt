@@ -143,7 +143,8 @@ bool bahiart::NetworkManager::TcpSocket::checkMessages()
             }
         else 
             {
-                throw bahiart::NetworkManager::SocketException("No message from server --> poll()");
+                //throw bahiart::NetworkManager::SocketException("No message from server --> poll()");
+                return false;
             }
     }
     catch (bahiart::NetworkManager::SocketException exception)
