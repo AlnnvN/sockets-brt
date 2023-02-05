@@ -69,6 +69,13 @@ int main(int argc, char *argv[])
     n = sendto(sockfd, buffer, strlen(hello) + 4, 
         0, (const struct sockaddr *) &cliaddr,
             len);
+
+    n = sendto(sockfd, buffer, strlen(hello) + 4, 
+        0, (const struct sockaddr *) &cliaddr,
+            len);
+    n = sendto(sockfd, buffer, strlen(hello) + 4, 
+        0, (const struct sockaddr *) &cliaddr,
+            len);
     if (n < 0) error("Error on sending");
 
 

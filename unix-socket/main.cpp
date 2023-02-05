@@ -14,7 +14,7 @@ int main(int argc, char *argv[])
         std::getline(std::cin,message);
         socket->sendMessage(message);
         
-        if (socket->receiveMessage())
+        while (socket->receiveMessage())
             std::cout << "Actual Message: " << socket->getBuffer().data() << std::endl;
         
     }
