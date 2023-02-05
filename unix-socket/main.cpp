@@ -24,12 +24,7 @@ int main(int argc, char *argv[])
         std::cout << "std::exception - Default exception at main()" << std::endl;
         return 0;
     }
-    return 0;
-}
 
-        while (socket->receiveMessage()) {
-        std::cout << "Message Received." << std::endl;}
-    }
     catch (std::exception exception)
     {
         std::cout << "std::exception - Default exception at main()" << std::endl;
