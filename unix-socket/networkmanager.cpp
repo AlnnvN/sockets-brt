@@ -379,7 +379,7 @@ bool bahiart::NetworkManager::UdpSocket::receiveMessage()
         this->buffer.resize(4);
 
         /* Checking if the data size of received message is equal/greater than 4 bytes */
-        if (recvfrom(this->socketFileDescriptor, this->buffer.data(), 4, MSG_PEEK, (struct sockaddr *)&addr, &fromlen) < 4)
+        if (recvfrom(this->socketFileDescriptor, this->buffer.data(), this->buffer.capacity(), MSG_PEEK, (struct sockaddr *)&addr, &fromlen) < 4)
             throw bahiart::NetworkManager::SocketException("Length of message is less than 4 bytes.");   
 
         /* 
@@ -390,14 +390,14 @@ bool bahiart::NetworkManager::UdpSocket::receiveMessage()
         */
 
         /* Convert received string length from network to host */
-        bufferLength = ntohl(*((unsigned int*) this->buffer.data())) + 4; 
+        bufferLength = ntohl(*((unsigned int*) this->buffer.data())); 
         std::cout << "\nMessage length: " << bufferLength << std::endl; // only for debug purposes
 
         /* Resizing buffer to fit the entire message */
-        this->buffer.resize(bufferLength);
+        this->buffer.resize(bufferLength + 4);
         
         /* Writing the message in buffer vector */
-        recvfrom(this->socketFileDescriptor, this->buffer.data(), bufferLength, 0, (struct sockaddr *)&addr, &fromlen);
+        recvfrom(this->socketFileDescriptor, this->buffer.data(), this->buffer.capacity(), 0, (struct sockaddr *)&addr, &fromlen);
 
         /* Erasing first 4 elements from buffer where length of message is */
         this->buffer.erase(this->buffer.begin(), this->buffer.begin()+4);
