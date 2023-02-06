@@ -110,8 +110,7 @@ int main(int argc, char *argv[]){
 
         /* clears msgBuffer to store response */
         msgBuffer.clear();
-        msgBuffer.resize(sendLength + 4, 0);
-        std::cout << "Buffer capacity: " << msgBuffer.capacity() << std::endl;
+        msgBuffer.resize(sendLength + 4);
         
         memset(msgBuffer.data(), 0, msgBuffer.capacity());
 

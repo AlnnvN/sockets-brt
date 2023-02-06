@@ -1,1 +1,0 @@
-/usr/bin/c++ CMakeFiles/bahiart.dir/main.cpp.o -o bahiart  libtcpsocket.a libudpsocket.a 

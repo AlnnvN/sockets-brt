@@ -1,2 +1,0 @@
-/usr/bin/ar qc libudpsocket.a CMakeFiles/udpsocket.dir/udpsocket.cpp.o
-/usr/bin/ranlib libudpsocket.a
