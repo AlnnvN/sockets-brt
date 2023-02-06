@@ -79,26 +79,21 @@ void bahiart::NetworkManager::TcpSocket::sendMessage(std::string message)
 
         /* Initializes vector for the message buffer as char type (1 byte per element), and
         resizes it to it's expected length */
-        //std::fill(this->buffer.begin(),this->buffer.end(),0);
         this->buffer.clear();
-        this->buffer.resize(bufferLength, 0);
-
-        /* Ensures that all of message buffer's memory is set to 0 */
-        memset(this->buffer.data(), 0, bufferLength);
+        this->buffer.resize(bufferLength + 1, 0);
 
         /* Sets first 4 bytes of the buffer to store the encoded message length unsigned int */
-        memcpy(this->buffer.data(), &encodedMsgLength, 4);
+        std::memcpy(buffer.data(), &encodedMsgLength, 4);
 
         /* Sets the rest of the buffer to store the message received as a parameter, fifth index onwards */
-        strcpy(this->buffer.data() + 4, message.c_str());
+        std::memcpy(buffer.data() + 4, message.c_str(), strlen(message.c_str()) + 1);
 
         /* Tries to send the message buffer from the just established connection, otherwise, throws an error */
-        if (send(this->socketFileDescriptor, this->buffer.data(), bufferLength, 0) < 0)
+        if (send(this->socketFileDescriptor, this->buffer.data(), bufferLength, 0) < 0){
             throw SocketException("Couldn't send the message to the server - send()", errno);
+        }
         
-        //std::fill(this->buffer.begin(),this->buffer.end(),0);
         this->buffer.clear();
-        //this->buffer.resize(0, 0);
     }
 
     catch (bahiart::NetworkManager::SocketException& exception)
@@ -140,7 +135,7 @@ bool bahiart::NetworkManager::TcpSocket::checkMessages()
             limit of waiting time that the function will wait for events (-1 makes it wait forever)
         */
 
-        rv = poll(&ufds, 1, 2000); // -> setted the timeout to 2000 only for working with the debug server
+        rv = poll(&ufds, 1, 20); // -> setted the timeout to 2000 only for working with the debug server
 
         if (rv > 0 && (ufds.revents && POLLIN))
             {   
@@ -190,11 +185,8 @@ bool bahiart::NetworkManager::TcpSocket::receiveMessage()
         //std::fill(this->buffer.begin(),this->buffer.end(),0);
        
         this->buffer.clear();
-        std::cout << "before" << std::endl;
-        std::cout << bufferLength << std::endl;
-        this->buffer.resize(bufferLength, 0);
-        std::cout << "after" << std::endl;
-        
+        this->buffer.resize(bufferLength + 1, 0);
+
         /*
         This while function (faithfully) will do the following steps:
         1. Checks if the number of read bytes is minor than the total number of bytes and if there is more data to be received, if positive, the loop continues
@@ -219,8 +211,6 @@ bool bahiart::NetworkManager::TcpSocket::receiveMessage()
 
         this->message = std::string(this->buffer.begin(),this->buffer.end());
 
-        //std::fill(buffer.begin(),buffer.end(),0);
-        //this->buffer.resize(0, 0);
         this->buffer.clear();
 
         return true;
@@ -302,24 +292,20 @@ void bahiart::NetworkManager::UdpSocket::sendMessage(std::string message){
 
         /* Initializes vector for the message buffer as char type (1 byte per element), and
         resizes it to it's expected length */
-        std::fill(this->buffer.begin(),this->buffer.end(),0);
-        this->buffer.resize(bufferLength, 0);
-
-        /* Ensures that all of message buffer's memory is set to 0 */
-        memset(this->buffer.data(), 0, bufferLength);
+        this->buffer.clear();
+        this->buffer.resize(bufferLength + 1, 0);
 
         /* Sets first 4 bytes of the buffer to store the encoded message length unsigned int */
-        memcpy(this->buffer.data(), &encodedMsgLength, 4);
+        std::memcpy(buffer.data(), &encodedMsgLength, 4);
 
         /* Sets the rest of the buffer to store the message received as a parameter, fifth index onwards */
-        strcpy(this->buffer.data() + 4, message.c_str());
+        std::memcpy(buffer.data() + 4, message.c_str(), strlen(message.c_str()) + 1);
 
         /* Tries to send the message buffer from the just established connection, otherwise, throws an error */
         if (sendto(socketFileDescriptor, this->buffer.data(), bufferLength, 0, this->serverInfo->ai_addr, this->serverInfo->ai_addrlen) < 0)
             throw SocketException("Couldn't send the message to the server - sendto()", errno);
 
-        std::fill(this->buffer.begin(),this->buffer.end(),0);
-        this->buffer.resize(0, 0);    
+        this->buffer.clear();
     }
 
     catch (const bahiart::NetworkManager::SocketException& exception)
@@ -393,11 +379,10 @@ bool bahiart::NetworkManager::UdpSocket::receiveMessage()
     /* Total length of the received data. */
     std::size_t bufferLength {};
     
-
     try {  
         
         /* Resizing buffer to fit the first 4 bytes */
-        std::fill(this->buffer.begin(),this->buffer.end(),0);
+        this->buffer.clear();
         this->buffer.resize(4, 0);
 
         /* Checking if the data size of received message is equal/greater than 4 bytes */
@@ -416,8 +401,8 @@ bool bahiart::NetworkManager::UdpSocket::receiveMessage()
         std::cout << "\nMessage length: " << bufferLength << std::endl; // only for debug purposes
 
         /* Resizing buffer to fit the entire message */
-        std::fill(this->buffer.begin(),this->buffer.end(),0);
-        this->buffer.resize(bufferLength + 4, 0);
+        this->buffer.clear();
+        this->buffer.resize(bufferLength + 4 + 1, 0);
         
         /* Writing the message in buffer vector */
         if (recvfrom(this->socketFileDescriptor, this->buffer.data(), this->buffer.capacity(), 0, (struct sockaddr *)&addr, &fromlen) < 0)
@@ -428,8 +413,7 @@ bool bahiart::NetworkManager::UdpSocket::receiveMessage()
 
         this->message = std::string(this->buffer.begin(),this->buffer.end());
 
-        std::fill(buffer.begin(),buffer.end(),0);
-        this->buffer.resize(0, 0);
+        this->buffer.clear();
 
         return true;
 
@@ -455,9 +439,4 @@ std::string bahiart::NetworkManager::UdpSocket::getMessage()
 
 bahiart::NetworkManager::UdpSocket::~UdpSocket(){
     freeaddrinfo(this->serverInfo);    // getaddrinfo()'s linked tree, used in struct addrinfo *serverInfo, is freed;
-}
-
-bahiart::NetworkManager::Socket::~Socket()
-{
-    /* Empty destructor function body required for pure virtual*/
 }

@@ -5,6 +5,7 @@
 #include <iostream>
 #include <vector>
 #include <memory>
+#include <cstring>
 
 /*UNIX dependencies*/
 #include <unistd.h>
@@ -73,8 +74,9 @@ namespace bahiart::NetworkManager
         virtual bool receiveMessage() = 0;
 
         virtual std::string getMessage() = 0;
-        /* Empty destructor function body required */
-        virtual ~Socket() = 0;
+        
+        /* '= 0' along with an empty destructor function body would be required for pure virtual*/
+        virtual ~Socket() {};
     };
 
     /* TCP Socket implementation class */
