@@ -239,7 +239,7 @@ bool bahiart::NetworkManager::TcpSocket::receiveMessage()
     
 }
 
-inline std::string bahiart::NetworkManager::TcpSocket::getMessage(){
+std::string bahiart::NetworkManager::TcpSocket::getMessage(){
     return (std::string)this->buffer.data();
 }
 

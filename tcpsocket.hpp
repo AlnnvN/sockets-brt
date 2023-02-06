@@ -29,7 +29,7 @@ namespace bahiart::NetworkManager
         bool receiveMessage() override;
         
         /* Returns string holding the message received from server */
-        inline std::string getMessage() override;
+        std::string getMessage() override;
 
         /* Closes connection to remote host (socket descriptor) -> close(), and
         frees stored addrinfo's linked tree -> freeaddrinfo() */

@@ -26,7 +26,7 @@ namespace bahiart::NetworkManager
         bool receiveMessage() override;
         
         /* Returns string holding the message received from server */
-        inline std::string getMessage() override;
+        std::string getMessage() override;
 
         /* Frees stored addrinfo's linked tree -> freeaddrinfo */
         ~UdpSocket() override;
