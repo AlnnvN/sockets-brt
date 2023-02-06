@@ -72,7 +72,6 @@ namespace bahiart::NetworkManager
         virtual bool receiveMessage() = 0;
 
         virtual std::string getBuffer() = 0;
-        
         /* Empty destructor function body required */
         virtual ~Socket() = 0;
     };

@@ -3,7 +3,7 @@
 
 int main(int argc, char *argv[])
 {
-    std::unique_ptr<bahiart::NetworkManager::Socket> socket = std::make_unique<bahiart::NetworkManager::TcpSocket>();
+    auto socket = std::make_unique<bahiart::NetworkManager::TcpSocket>();
     std::string message;
     try
     {
@@ -12,11 +12,12 @@ int main(int argc, char *argv[])
 
         std::cout << "Write a message: ";
         std::getline(std::cin,message);
-        socket->sendMessage(message);
-        
-        
-        while (socket->receiveMessage())
-            std::cout << "Message: " << socket->getBuffer() << std::endl;
+
+        socket->sendMessage(message); 
+
+        while (socket->receiveMessage()) {
+        std::cout << "Server response: " << socket->getBuffer().data() << std::endl;
+        }
         
     }
     catch (const std::exception& exception)
@@ -24,11 +25,4 @@ int main(int argc, char *argv[])
         std::cout << "std::exception - Default exception at main()" << std::endl;
         return 0;
     }
-
-    catch (std::exception exception)
-    {
-        std::cout << "std::exception - Default exception at main()" << std::endl;
-        return 0;
-    }
-    return 0;
 }
