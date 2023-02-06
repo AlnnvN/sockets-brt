@@ -56,7 +56,8 @@ namespace bahiart::NetworkManager
     class Socket
     {
     protected:
-        std::vector<char> buffer{};
+        std::string message;
+        std::vector<char> buffer;
         int socketFileDescriptor{};
         struct addrinfo *serverInfo{};
 
@@ -71,7 +72,7 @@ namespace bahiart::NetworkManager
 
         virtual bool receiveMessage() = 0;
 
-        virtual std::vector<char> getBuffer() = 0;
+        virtual std::string getMessage() = 0;
         /* Empty destructor function body required */
         virtual ~Socket() = 0;
     };
@@ -96,7 +97,7 @@ namespace bahiart::NetworkManager
         bool receiveMessage() override;
         
         /* Returns vector holding the message received from server */
-        std::vector<char> getBuffer() override;
+        std::string getMessage() override;
 
         /* Closes connection to remote host (socket descriptor) -> close(), and
         frees stored addrinfo's linked tree -> freeaddrinfo() */
@@ -121,7 +122,7 @@ namespace bahiart::NetworkManager
         bool receiveMessage() override;
         
         /* Returns vector holding the message received from server */
-        std::vector<char> getBuffer() override;
+        std::string getMessage() override;
 
         /* Frees stored addrinfo's linked tree -> freeaddrinfo */
         ~UdpSocket() override;
