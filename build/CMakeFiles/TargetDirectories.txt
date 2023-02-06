@@ -1,5 +1,0 @@
-/home/alan/sockets-brt/unix-socket/build/CMakeFiles/tcpsocket.dir
-/home/alan/sockets-brt/unix-socket/build/CMakeFiles/udpsocket.dir
-/home/alan/sockets-brt/unix-socket/build/CMakeFiles/bahiart.dir
-/home/alan/sockets-brt/unix-socket/build/CMakeFiles/edit_cache.dir
-/home/alan/sockets-brt/unix-socket/build/CMakeFiles/rebuild_cache.dir
