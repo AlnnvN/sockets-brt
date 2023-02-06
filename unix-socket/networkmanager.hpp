@@ -56,7 +56,7 @@ namespace bahiart::NetworkManager
     class Socket
     {
     protected:
-        std::vector<char> buffer{};
+        std::vector<char> buffer{4};
         int socketFileDescriptor{};
         struct addrinfo *serverInfo{};
 

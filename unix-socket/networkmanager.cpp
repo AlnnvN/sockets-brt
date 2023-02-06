@@ -72,10 +72,10 @@ void bahiart::NetworkManager::TcpSocket::sendMessage(std::string message)
     {
         /* Defines the size of the message buffer as the length of the message per se, 
         plus 4 bytes for the initial unsigned int representing message length */
-        const std::size_t bufferLength = message.length() + 4;
+        const unsigned int bufferLength = message.length() + 4; 
         
         /* Encodes the length of the message, from a host unsigned int, to a network one */
-        const std::size_t encodedMsgLength = htonl(message.length());
+        const unsigned int encodedMsgLength = htonl(message.length());
 
         /* Ensures that all of message buffer's memory is set to 0 */
         this->buffer.clear();
@@ -164,7 +164,7 @@ bool bahiart::NetworkManager::TcpSocket::receiveMessage()
     int bytesRead {};
 
     /* Total length of the received data. */
-    std::size_t bufferLength {};
+    unsigned int bufferLength {};
     
     try {
 
@@ -172,7 +172,18 @@ bool bahiart::NetworkManager::TcpSocket::receiveMessage()
         this->buffer.clear();
         
         /* Resizing buffer to fit the first four bytes */
-        this->buffer.resize(4);
+
+        //this->buffer.resize(4);
+        //this->buffer.shrink_to_fit();
+        /* 
+        -> 
+        the shkrink to fit is an alternative for reducing buffer capacity to 4, as the
+        vector allocated size in memory remains bigger if resized to a greater number
+        before, but it has operational costs, since the items are copied and moved to another
+        block, and when resized, the same happens. A suggestion woul be start the vector with 4 bytes capacity
+        and only increase it when necessary, since our priority would be perfomance over free memory.
+        */
+
 
         /* Checking if the data size of received message is equal/greater than 4 bytes */
         if (recv(this->socketFileDescriptor, this->buffer.data(), 4, 0) < 4)
@@ -379,8 +390,16 @@ bool bahiart::NetworkManager::UdpSocket::receiveMessage()
         /* Cleaning buffer before using */
         this->buffer.clear();
 
-        /* Resizing buffer to fit the first 4 bytes */
-        this->buffer.resize(4);
+        //this->buffer.resize(4);
+        //this->buffer.shrink_to_fit();
+        /* 
+        -> 
+        the shkrink to fit is an alternative for reducing buffer capacity to 4, as the
+        vector allocated size in memory remains bigger if resized to a greater number
+        before, but it has operational costs, since the items are copied and moved to another
+        block, and when resized, the same happens. A suggestion is start the vector with 4 bytes capacity
+        and only increase it when necessary, since our priority would be perfomance over free memory.
+        */
 
         /* Checking if the data size of received message is equal/greater than 4 bytes */
         if (recvfrom(this->socketFileDescriptor, this->buffer.data(), this->buffer.capacity(), MSG_PEEK, (struct sockaddr *)&addr, &fromlen) < 4)
