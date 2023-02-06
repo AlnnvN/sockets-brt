@@ -17,7 +17,6 @@ int main(int argc, char *argv[])
 
         while (socket->receiveMessage()) {
         std::cout << "Server response: " << socket->getBuffer().data() << std::endl;
-        std::cout << "Message Length: " << socket->getBuffer().capacity() << std::endl;
         }
         
     }
