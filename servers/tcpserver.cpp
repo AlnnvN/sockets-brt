@@ -128,8 +128,6 @@ int main(int argc, char *argv[]){
                 std::cout << "Server -> failed to send response" << std::endl;
                 exit(0);
             }
-
-            sleep(1); //delay between messages 
         }
     }
     return 0;
