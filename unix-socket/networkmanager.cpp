@@ -80,8 +80,8 @@ void bahiart::NetworkManager::TcpSocket::sendMessage(std::string message)
         /* Ensures that all of message buffer's memory is set to 0 */
         this->buffer.clear();
 
-        /* Resizes buffer to it's expected length */
-        this->buffer.resize(bufferLength);
+        /* Resizes buffer to it's expected length + null terminator */
+        this->buffer.resize(bufferLength + 1);
 
         /* Sets first 4 bytes of the buffer to store the encoded message length unsigned int */
         memcpy(this->buffer.data(), &encodedMsgLength, 4);
@@ -289,8 +289,8 @@ void bahiart::NetworkManager::UdpSocket::sendMessage(std::string message){
         /* Ensures that all of message buffer's memory is set to 0 */
         this->buffer.clear();
 
-        /* Resizes buffer to it's expected length */
-        this->buffer.resize(bufferLength);
+        /* Resizes buffer to it's expected length + null terminator */
+        this->buffer.resize(bufferLength + 1);
 
         /* Sets first 4 bytes of the buffer to store the encoded message length unsigned int */
         memcpy(this->buffer.data(), &encodedMsgLength, 4);
