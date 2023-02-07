@@ -77,6 +77,8 @@ void bahiart::NetworkManager::TcpSocket::sendMessage(std::string message)
         /* Encodes the length of the message, from a host unsigned int, to a network one. */
         const unsigned long encodedMsgLength = htonl(message.length());
 
+        std::string prefix((const char*)&encodedMsgLength,sizeof(unsigned int));
+
         /* Initializes vector for the message buffer as char type (1 byte per element), and
         resizes it to it's expected length. */
         this->buffer.clear();
@@ -84,7 +86,7 @@ void bahiart::NetworkManager::TcpSocket::sendMessage(std::string message)
         /* +1 to preserve null terminator. */
 
         /* Sets first 4 bytes of the buffer to store the encoded message length unsigned int. */
-        std::memcpy(this->buffer.data(), &encodedMsgLength, 4);
+        std::memcpy(this->buffer.data(), &prefix, 4);
 
         /* Sets the rest of the buffer to store the message received as a parameter, fifth index onwards. */
         std::memcpy(this->buffer.data() + 4, message.c_str(), strlen(message.c_str()) + 1);

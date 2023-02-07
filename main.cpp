@@ -11,15 +11,16 @@ int main(int argc, char *argv[])
         socket->setupAddress(argv[1], argv[2]);
         socket->openConnection();
 
+        while(1) {
         std::cout << "Write a message: ";
-        std::getline(std::cin,message);
+        std::getline(std::cin,message);}
 
         socket->sendMessage(message); 
 
-        while (socket->receiveMessage()) {
+/*         while (socket->receiveMessage()) {
             std::cout << "Server response: '" << socket->getMessage() << "'" << std::endl;
             std::cout << "Message Length: " << socket->getMessage().length() << std::endl;
-        }
+        } */
         
     }
     catch (const std::exception& exception)
